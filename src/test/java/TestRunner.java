@@ -17,16 +17,21 @@ public class TestRunner {
     @Test
     public void tests(){
 
-        Results results = Runner.path("classpath:features").parallel(1);
+        Results results = Runner
+                .builder().outputCucumberJson(true)
+                .path("classpath:features").parallel(1);
         assertEquals(0, results.getFailCount(), results.getErrorMessages());
+        System.setProperty("karate.env", "karateTesting");
+        generateReport(results.getReportDir());
 
     }
 
-    public static void generateReport(String outputPath) {
-        Collection<File> jsonFiles = FileUtils.listFiles(new File(outputPath), new String[]{"json"}, true);
-        List<String> jsonPaths = new ArrayList<>(jsonFiles.size());
+    public static void generateReport(String karateOutputPath) {
+        Collection<File> jsonFiles = FileUtils.listFiles(new File(karateOutputPath), new String[] {"json"}, true);
+        List<String> jsonPaths = new ArrayList(jsonFiles.size());
         jsonFiles.forEach(file -> jsonPaths.add(file.getAbsolutePath()));
-        Configuration config = new Configuration(new File("./src/test/java/reports"), "karate-api-automation");
-        new ReportBuilder(jsonPaths, config).generateReports();
+        Configuration config = new Configuration(new File("target"), "karateTesting");
+        ReportBuilder reportBuilder = new ReportBuilder(jsonPaths, config);
+        reportBuilder.generateReports();
     }
 }
